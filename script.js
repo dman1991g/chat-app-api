@@ -5,7 +5,7 @@ const sendChatbtn = document.querySelector(".chat-input span");
 const chatbox = document.querySelector(".chatbox");
 
 let userMessage = null; // Store user's message
-const API_KEY = "YOUR_HUGGINGFACE_API_KEY"; // Replace with your Hugging Face API key
+const API_KEY = config.API_KEY; // Fetch the API key from config.js
 const MODEL = "mistralai/Mistral-7B-Instruct"; // Choose an AI model
 const API_URL = `https://api-inference.huggingface.co/models/${MODEL}`;
 const inputInitHeight = chatInput.scrollHeight;
@@ -22,8 +22,8 @@ const createChatLi = (message, className) => {
 };
 
 // Function to call Hugging Face API and generate response
-const generateResponse = (incomingChatli) => {
-  const messageElement = incomingChatli.querySelector("p");
+const generateResponse = (incomingChatLi) => {
+  const messageElement = incomingChatLi.querySelector("p");
 
   const requestOptions = {
     method: "POST",
@@ -60,15 +60,15 @@ const handleChat = () => {
   chatInput.style.height = `${inputInitHeight}px`;
 
   // Append user message to chatbox
-  const outgoingChatli = createChatLi(userMessage, "outgoing");
-  chatbox.appendChild(outgoingChatli);
+  const outgoingChatLi = createChatLi(userMessage, "outgoing");
+  chatbox.appendChild(outgoingChatLi);
   chatbox.scrollTo(0, chatbox.scrollHeight);
 
   setTimeout(() => {
     // Display "Typing..." message while waiting for the response
-    const incomingChatli = createChatLi("Typing...", "incoming");
-    chatbox.appendChild(incomingChatli);
-    generateResponse(incomingChatli);
+    const incomingChatLi = createChatLi("Typing...", "incoming");
+    chatbox.appendChild(incomingChatLi);
+    generateResponse(incomingChatLi);
   }, 600);
 };
 
