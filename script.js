@@ -4,68 +4,62 @@ const chatInput = document.querySelector(".chat-input textarea");
 const sendChatbtn = document.querySelector(".chat-input span");
 const chatbox = document.querySelector(".chatbox");
 
-let userMessage = null; // Variable to store user's message
-const API_KEY = "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"; // Paste API key her
+let userMessage = null; // Store user's message
+const API_KEY = "YOUR_HUGGINGFACE_API_KEY"; // Replace with your Hugging Face API key
+const MODEL = "mistralai/Mistral-7B-Instruct"; // Choose an AI model
+const API_URL = `https://api-inference.huggingface.co/models/${MODEL}`;
 const inputInitHeight = chatInput.scrollHeight;
 
+// Function to create chat message elements
 const createChatLi = (message, className) => {
-  //Create a chat <li> element with passed message and class name
   const chatLi = document.createElement("li");
   chatLi.classList.add("chat", className);
-  let chatContent =
-    className === "outgoing"
-      ? `<p></p>`
-      : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
-  chatLi.innerHTML = chatContent;
+  chatLi.innerHTML = className === "outgoing"
+    ? `<p></p>`
+    : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
   chatLi.querySelector("p").textContent = message;
-  return chatLi; // return chat <li> element
+  return chatLi;
 };
 
+// Function to call Hugging Face API and generate response
 const generateResponse = (incomingChatli) => {
-  // Generate a random response from the bot
-  const API_URL = "https://api.openai.com/v1/chat/completions";
   const messageElement = incomingChatli.querySelector("p");
 
   const requestOptions = {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${API_KEY}`,
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
-    }),
+      inputs: userMessage,
+      parameters: { max_new_tokens: 100, return_full_text: false }
+    })
   };
 
-  // Send POST request to API, get a response and set the response as paragraph text
+  // Send request to Hugging Face API
   fetch(API_URL, requestOptions)
     .then((res) => res.json())
     .then((data) => {
-      messageElement.textContent = data.choices[0].message.content.trim();
+      const reply = data[0]?.generated_text || "Sorry, I couldn't understand that.";
+      messageElement.textContent = reply;
     })
     .catch(() => {
       messageElement.classList.add("error");
-      messageElement.textContent =
-        "Oops Something went wrong. Please try again.";
+      messageElement.textContent = "Oops! Something went wrong. Please try again.";
     })
     .finally(() => chatbox.scrollTo(0, chatbox.scrollHeight));
 };
 
+// Function to handle user input and send message
 const handleChat = () => {
-  userMessage = chatInput.value.trim(); // Get user entered message and remove extra whitespace
+  userMessage = chatInput.value.trim();
   if (!userMessage) return;
 
-  // Clear the input textarea and set its height to default
   chatInput.value = "";
   chatInput.style.height = `${inputInitHeight}px`;
 
-  // Append the user's message to the chatbox
+  // Append user message to chatbox
   const outgoingChatli = createChatLi(userMessage, "outgoing");
   chatbox.appendChild(outgoingChatli);
   chatbox.scrollTo(0, chatbox.scrollHeight);
@@ -78,15 +72,14 @@ const handleChat = () => {
   }, 600);
 };
 
+// Auto-expand textarea on input
 chatInput.addEventListener("input", () => {
-  // Adjust the height of the input textarea based on its content
   chatInput.style.height = `${inputInitHeight}px`;
   chatInput.style.height = `${chatInput.scrollHeight}px`;
 });
 
+// Handle sending messages when Enter is pressed
 chatInput.addEventListener("keydown", (e) => {
-  // If Enter key is pressed without the Shift key and the window
-  // width is greater than 800px, handle the chat
   if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
     e.preventDefault();
     handleChat();
@@ -94,9 +87,5 @@ chatInput.addEventListener("keydown", (e) => {
 });
 
 sendChatbtn.addEventListener("click", handleChat);
-closeBtn.addEventListener("click", () =>
-  document.body.classList.remove("show-chatbot")
-);
-chatbotToggler.addEventListener("click", () =>
-  document.body.classList.toggle("show-chatbot")
-);
+closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
